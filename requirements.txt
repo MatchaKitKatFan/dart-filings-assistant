@@ -1,0 +1,14 @@
+anthropic
+python-dotenv
+pydantic
+requests
+beautifulsoup4
+chromadb
+sentence-transformers
+rank_bm25
+kiwipiepy
+numpy
+fastapi
+uvicorn
+gradio
+pytest
