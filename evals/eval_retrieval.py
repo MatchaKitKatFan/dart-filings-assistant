@@ -25,7 +25,7 @@ def evaluate(search, data: list[dict], k: int = 5) -> dict:
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--collection", default="docs_1200")
-    ap.add_argument("--method", default="vector", choices=["vector", "keyword", "hybrid", "rerank"])
+    ap.add_argument("--method", default="vector", choices=["vector", "keyword", "hybrid", "rerank", "filtered"])
     ap.add_argument("--k", type=int, default=5)
     ap.add_argument("--min-recall", type=float, default=0.0)
     args = ap.parse_args()

@@ -1,6 +1,7 @@
 from collections import defaultdict
 
 import numpy as np
+import re
 
 _embedder = None
 _reranker = None
@@ -22,6 +23,7 @@ def get_reranker():
         _reranker = CrossEncoder("BAAI/bge-reranker-v2-m3")
     return _reranker
 
+CORPS = ["삼성전자", "SK하이닉스", "현대자동차", "NAVER", "카카오뱅크"]   # collect.py 와 같게
 
 class Retriever:
     def __init__(self, collection: str = "docs_1200"):
@@ -73,6 +75,21 @@ class Retriever:
         order = np.argsort(scores)[::-1][:k]
         return [{**cands[i], "score": float(scores[i])} for i in order]
     
+    def filtered(self, q: str, k: int = 5) -> list[dict]:
+        """질문에 나온 회사·연도의 청크 안에서만 벡터 검색"""
+        corps = [c for c in CORPS if c in q]
+        years = [int(y) for y in re.findall(r"(20\d{2})년", q)]
+        conds = ([{"corp": {"$in": corps}}] if corps else []) + \
+                ([{"year": {"$in": years}}] if years else [])
+        where = {"$and": conds} if len(conds) == 2 else (conds[0] if conds else None)
+        qv = get_embedder().encode([q], normalize_embeddings=True).tolist()
+        r = self.col.query(query_embeddings=qv, n_results=k, where=where)
+        return [
+            {"id": i, "text": d, "score": 1 - dist, **m}
+            for i, d, m, dist in zip(r["ids"][0], r["documents"][0],
+                                     r["metadatas"][0], r["distances"][0])
+        ]
+
     
     
     
