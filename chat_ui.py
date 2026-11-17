@@ -1,12 +1,11 @@
 import gradio as gr
 
-from agent.graph import graph_app
+from agent.graph import chat
 
 
 def respond(message: str, history: list, request: gr.Request) -> str:
     # 브라우저 탭마다 다른 session_hash → 탭마다 별도의 대화방(thread_id)
-    cfg = {"configurable": {"thread_id": request.session_hash}}
-    out = graph_app.invoke({"question": message}, config=cfg)
+    out = chat(request.session_hash, message)    # 브라우저 탭마다 다른 session_hash → 탭마다 별도의 대화방
     steps = " → ".join(f"`{t['tool']}({next(iter(t['input'].values()), '')})`"
                        for t in out.get("trace", []))
     return (f"{out['answer']}\n\n---\n"
