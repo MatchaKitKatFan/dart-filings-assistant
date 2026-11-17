@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 
+from agent.graph import graph_app
 from rag import answer
 from retriever import Retriever
 
@@ -32,9 +33,21 @@ def health():
 
 @app.post("/ask", response_model=AskRes)
 def ask_api(req: AskReq):
-    r = answer(req.question, retriever.vector, req.k)
+    r = answer(req.question, retriever.filtered, req.k)
     return {
         "answer": r["answer"],
         "sources": [{"n": n, "source": d["source"], "title": d["title"], "score": round(d["score"], 3)}
                     for n, d in enumerate(r["sources"], start=1)],
     }
+
+
+class ChatReq(BaseModel):
+    thread_id: str
+    message: str
+
+
+@app.post("/chat")
+def chat(req: ChatReq):
+    out = graph_app.invoke({"question": req.message},
+                           config={"configurable": {"thread_id": req.thread_id}})
+    return {"answer": out["answer"], "route": out["route"]}
