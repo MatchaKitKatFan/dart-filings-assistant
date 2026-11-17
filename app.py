@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-from agent.graph import graph_app
+from agent.graph import chat as run_chat
 from rag import answer
 from retriever import Retriever
 
@@ -48,7 +48,6 @@ class ChatReq(BaseModel):
 
 @app.post("/chat")
 def chat(req: ChatReq):
-    out = graph_app.invoke({"question": req.message},
-                           config={"configurable": {"thread_id": req.thread_id}})
+    out = run_chat(req.thread_id, req.message)
     return {"answer": out["answer"], "route": out["route"],
             "question": out["question"], "trace": out.get("trace", [])}
