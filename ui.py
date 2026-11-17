@@ -7,7 +7,7 @@ retriever = Retriever("docs_1200")
 
 
 def respond(question: str):
-    r = answer(question, retriever.vector)
+    r = answer(question, retriever.filtered)
     sources = "\n".join(
         f"{n}. `{d['source']}` · {d['title']} (유사도 {d['score']:.2f})"
         for n, d in enumerate(r["sources"], start=1)
