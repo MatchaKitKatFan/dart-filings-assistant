@@ -50,4 +50,5 @@ class ChatReq(BaseModel):
 def chat(req: ChatReq):
     out = graph_app.invoke({"question": req.message},
                            config={"configurable": {"thread_id": req.thread_id}})
-    return {"answer": out["answer"], "route": out["route"]}
+    return {"answer": out["answer"], "route": out["route"],
+            "question": out["question"], "trace": out.get("trace", [])}

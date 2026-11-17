@@ -14,6 +14,7 @@ class State(TypedDict):
     question: str
     route: str
     answer: str
+    trace: list                              # 이번 질문에서 쓴 도구 기록 (매 질문마다 새로 덮어씀)
     history: Annotated[list, operator.add]   # 노드가 돌려준 리스트를 기존 값 뒤에 이어붙임
 
 
@@ -58,12 +59,17 @@ def _turn(q: str, a: str) -> list:
 
 def rag_node(state: State) -> dict:
     a = answer(state["question"], _get_retriever().filtered)["answer"]
-    return {"answer": a, "history": _turn(state["question"], a)}
+    trace = [{"tool": "RAG 문서검색", "input": {"query": state["question"]}}]
+    return {"answer": a, "trace": trace, "history": _turn(state["question"], a)}
 
 
 def agent_node(state: State) -> dict:
     res = run_agent(state["question"], history=state.get("history", []))
-    return {"answer": res["answer"], "history": _turn(state["question"], res["answer"])}
+    used = ", ".join(f"{t['tool']}({next(iter(t['input'].values()), '')})" for t in res["trace"]) or "없음"
+    note = f"\n\n(이 답변에서 사용한 도구: {used})"          # 다음 질문 때 에이전트가 근거를 알 수 있게
+    return {"answer": res["answer"], "trace": res["trace"],
+            "history": _turn(state["question"], res["answer"] + note)}
+
 
 
 g = StateGraph(State)
