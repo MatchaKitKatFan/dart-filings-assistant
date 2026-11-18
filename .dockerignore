@@ -1,0 +1,10 @@
+.venv
+.env
+.git
+data
+logs
+mlruns
+__pycache__
+evals/results
+*.zip
+chroma_backup
